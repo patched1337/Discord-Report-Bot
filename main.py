@@ -1,3 +1,7 @@
+"""
+discord mass report bot made by patched1337@github.com
+"""
+
 import os
 import sys
 import ssl
@@ -14,6 +18,9 @@ logging.basicConfig(
 )
 
 class Cloudflare_TLS(HTTPAdapter):
+    """
+    this class will downgrade the tls version so cloudflare wont block our requests.
+    """
 
     def init_poolmanager(self, *args, **kwargs):
         ssl_context = ssl.create_default_context()
@@ -26,6 +33,9 @@ class Cloudflare_TLS(HTTPAdapter):
         return super().init_poolmanager(*args, **kwargs)
 
 class Discord:
+    """
+    this is the main class which has all the apis and everything we need.
+    """
 
     def __init__(self, token: str) -> None:
         self.token = token
@@ -102,6 +112,9 @@ class Discord:
             return {"error": True, "message": "failed to send report"}
 
 class Threaded:
+    """
+    this is just to help you thread all the functions inside the class Discord.
+    """
 
     def _admin_report(api, guild, channel, message):
         report = api._admin_report(guild, channel, message)

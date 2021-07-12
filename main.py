@@ -4,33 +4,17 @@ discord mass report bot made by patched1337@github.com
 
 import os
 import sys
-import ssl
 import names
 import logging
 import requests
+import cfscrape
 from threading import Thread
-from requests.adapters import HTTPAdapter
 
 logging.basicConfig(
     level=logging.INFO,
     format=f"\x1b[38;5;197m[\x1b[0m%(asctime)s\x1b[38;5;197m]\x1b[0m -> \x1b[38;5;197m%(message)s\x1b[0m",
     datefmt="%H:%M:%S",
 )
-
-class Cloudflare_TLS(HTTPAdapter):
-    """
-    this class will downgrade the tls version so cloudflare wont block our requests.
-    """
-
-    def init_poolmanager(self, *args, **kwargs):
-        ssl_context = ssl.create_default_context()
-
-        ssl_context.options &= ~ssl.OP_NO_TLSv1_3 & ~ssl.OP_NO_TLSv1_2 & ~ssl.OP_NO_TLSv1_1
-        ssl_context.minimum_version = ssl.TLSVersion.TLSv1
-
-        kwargs["ssl_context"] = ssl_context
-
-        return super().init_poolmanager(*args, **kwargs)
 
 class Discord:
     """
@@ -40,7 +24,7 @@ class Discord:
     def __init__(self, token: str) -> None:
         self.token = token
         self.session = requests.session()
-        self.session.mount("https://", Cloudflare_TLS())
+        self.cf_session = cfscrape.create_scraper()
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.305 Chrome/69.0.3497.128 Electron/4.0.8 Safari/537.36",
             "Content-Type": "application/json",
@@ -102,7 +86,7 @@ class Discord:
             "upgrade-insecure-requests": "1",
             "content-length": str(len(data))
         }
-        r = self.session.post("https://support.discord.com/hc/en-us/requests", data=data, headers=headers)
+        r = self.cf_session.post("https://support.discord.com/hc/en-us/requests", data=data, headers=headers)
         if r.status_code in (200, 201, 204, 302):
             return {"error": False, "message": "sent report"}
         elif "RayID:" in r.text:
